@@ -14,7 +14,7 @@ BOT_USER = "chatbot"
 BOT_PASS = "chatbot"
 
 # --- CẤU HÌNH AI ---
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "YOUR_API_KEY_HERE"
 client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
 SYSTEM_PROMPT = """
 Bạn là trợ lý ảo của ứng dụng quản lý tài chính "Heo Vàng" .
