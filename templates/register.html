@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Tài Khoản - Heo Vàng</title>
+    <script src="/static/tinode.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #2d3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        .card {
+            background: #1e2a36;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: left;
+            color: #3498db;
+            margin-top: 0;
+            font-weight: normal;
+            border-bottom: 2px solid #3498db;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #2b3a4a;
+            border: none;
+            border-bottom: 2px solid #445;
+            color: white;
+            outline: none;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-bottom-color: #3498db;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .link a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        #statusMsg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            min-height: 20px;
+        }
+
+        .loading {
+            color: #f1c40f;
+        }
+
+        .success {
+            color: #2ecc71;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>Create Account</h2>
+
+        <div class="form-group">
+            <label>Login (Tên đăng nhập)</label>
+            <input type="text" id="username" placeholder="vd: user123">
+        </div>
+
+        <div class="form-group">
+            <label>Password (Mật khẩu)</label>
+            <input type="password" id="password" placeholder="******">
+        </div>
+
+        <div class="form-group">
+            <label>Full name (Tên hiển thị)</label>
+            <input type="text" id="fullname" placeholder="vd: Nguyễn Văn A">
+        </div>
+
+        <div class="form-group">
+            <label>Email (Tùy chọn)</label>
+            <input type="text" id="email" placeholder="email@example.com">
+        </div>
+
+        <button onclick="processRegister()" id="regBtn">SIGN UP</button>
+        <div id="statusMsg"></div>
+
+        <div class="link">
+            Đã có tài khoản? <a href="/login">Đăng nhập</a>
+        </div>
+    </div>
+
+    <script>
+        const TINODE_HOST = "localhost:6060";
+        const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
+
+        async function processRegister() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const fname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            const status = document.getElementById('statusMsg');
+            const btn = document.getElementById('regBtn');
+
+            if (!user || !pass || !fname) {
+                status.innerText = "Vui lòng điền Tên đăng nhập, Mật khẩu và Tên hiển thị.";
+                status.className = "error";
+                return;
+            }
+
+            btn.disabled = true;
+            status.innerText = "Đang tạo tài khoản...";
+            status.className = "loading";
+
+            try {
+                // 1. Đăng ký vào Database Flask
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass, fullname: fname })
+                });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message);
+
+                // 2. Đăng ký lên Tinode
+                status.innerText = "Đang đồng bộ Chat Server...";
+                await registerTinode(user, pass, fname, email);
+
+                status.innerText = "Thành công! Đang chuyển trang...";
+                status.className = "success";
+
+                setTimeout(() => window.location.href = "/login", 1500);
+
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Lỗi: " + err.message;
+                status.className = "error";
+                btn.disabled = false;
+            }
+        }
+
+        async function registerTinode(u, p, fn, email) {
+            let TinodeConstructor = window.tinode || window.Tinode;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
+
+            const client = new TinodeConstructor({ appName: 'HeoVang-Reg', host: TINODE_HOST, apiKey: API_KEY });
+
+            try {
+                await client.connect();
+
+                // Tạo tài khoản (Basic)
+                // Tham số thứ 3 là login=true (tự động đăng nhập sau khi tạo)
+                await client.createAccountBasic(u, p, true);
+
+                // Lấy topic 'me'
+                const me = client.getMeTopic();
+
+                // Cập nhật Metadata (Tên hiển thị)
+                // Đây là bước quan trọng để không bị Unnamed
+                const desc = {
+                    public: {
+                        fn: fn, // Full Name
+                        email: email // Email (nếu có)
+                    }
+                };
+
+                // Gửi lệnh SET
+                const response = await me.setMeta({ desc: desc });
+                console.log("✅ Set Meta Response:", response);
+
+            } catch (err) {
+                // Nếu lỗi 409 (Conflict - tài khoản đã có), ta thử login và update tên
+                if (err.code === 409) {
+                    await client.loginBasic(u, p);
+                    const me = client.getMeTopic();
+                    await me.setMeta({ desc: { public: { fn: fn } } });
+                } else {
+                    throw err;
+                }
+            } finally {
+                client.disconnect();
+            }
+        }
+    </script>
+</body>
+
+</html>

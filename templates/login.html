@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - Heo Vàng</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #00a884;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00a884;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #008f6f;
+        }
+
+        .link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: #ff9800;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>Đăng Nhập</h2>
+        <input type="text" id="username" placeholder="Tên đăng nhập">
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <button onclick="handleLogin()">Vào App Ngay</button>
+
+        <div class="link">
+            Chưa có tài khoản? <a href="/register">Đăng ký tại đây</a>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            if (!user || !pass) return alert("Nhập thiếu thông tin!");
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Lưu thông tin người dùng vào LocalStorage
+                    // data.user chứa cả username và fullname
+                    const userInfo = {
+                        username: data.user.username,
+                        password: pass, // Lưu pass để tự động login chat (demo only)
+                        fullname: data.user.fullname
+                    };
+                    localStorage.setItem('heovang_user', JSON.stringify(userInfo));
+
+                    // Chuyển về trang chủ
+                    window.location.href = "/";
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("Lỗi hệ thống: " + err.message);
+            }
+        }
+    </script>
+</body>
+
+</html>
