@@ -8,7 +8,6 @@
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2600/2600267.png" type="image/png">
     <script src="/static/tinode.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #ff9800, #ff5722);
@@ -25,7 +24,6 @@
             color: #333;
         }
 
-        /* Navbar hiện đại hơn */
         .navbar {
             background: var(--primary-gradient);
             padding: 15px 40px;
@@ -33,10 +31,14 @@
             justify-content: space-between;
             align-items: center;
             color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
 
         .btn {
             padding: 10px 24px;
@@ -47,10 +49,13 @@
             text-decoration: none;
             font-weight: 700;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
 
         .hero {
             text-align: center;
@@ -59,7 +64,6 @@
             border-radius: 0 0 50% 50% / 20px;
         }
 
-        /* Bong bóng chat có hiệu ứng */
         .chat-toggle {
             position: fixed;
             bottom: 30px;
@@ -75,13 +79,14 @@
             font-size: 30px;
             cursor: pointer;
             z-index: 1000;
-            box-shadow: 0 8px 25px rgba(0,200,83,0.4);
+            box-shadow: 0 8px 25px rgba(0, 200, 83, 0.4);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .chat-toggle:hover { transform: scale(1.1) rotate(10deg); }
+        .chat-toggle:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
 
-        /* Cửa sổ Chat nâng cấp */
         .chat-window {
             position: fixed;
             bottom: 115px;
@@ -93,17 +98,27 @@
             display: none;
             flex-direction: column;
             z-index: 1000;
-            border: 1px solid rgba(0,0,0,0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .chat-window.open { display: flex; animation: slideIn 0.4s ease-out; }
+        .chat-window.open {
+            display: flex;
+            animation: slideIn 0.4s ease-out;
+        }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .chat-header {
@@ -127,7 +142,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Message Bubbles */
         .message {
             max-width: 80%;
             padding: 12px 16px;
@@ -135,7 +149,7 @@
             font-size: 14px;
             line-height: 1.5;
             position: relative;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .message.me {
@@ -152,8 +166,20 @@
             border-bottom-left-radius: 5px;
         }
 
-        .bot-container { display: flex; align-items: flex-end; gap: 10px; align-self: flex-start; }
-        .bot-avatar { width: 32px; height: 32px; border-radius: 50%; background: white; padding: 2px; }
+        .bot-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            align-self: flex-start;
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+        }
 
         .chat-footer {
             padding: 15px 20px;
@@ -173,7 +199,9 @@
             transition: border 0.3s;
         }
 
-        .chat-footer input:focus { border-color: var(--secondary-color); }
+        .chat-footer input:focus {
+            border-color: var(--secondary-color);
+        }
 
         .chat-footer button {
             width: 45px;
@@ -189,9 +217,13 @@
             transition: 0.3s;
         }
 
-        .chat-footer button:hover { background: #00a846; }
-        .chat-footer button:disabled { background: #ccc; }
+        .chat-footer button:hover {
+            background: #00a846;
+        }
 
+        .chat-footer button:disabled {
+            background: #ccc;
+        }
     </style>
 </head>
 
@@ -239,8 +271,7 @@
     </div>
 
     <script>
-        // --- CẤU HÌNH KẾT NỐI VICHAT QUA HAPROXY ---
-        const TINODE_HOST = "localhost:8080"; // Gọi qua HAProxy cổng 8080
+        const TINODE_HOST = "localhost:8080";
         const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
         const BOT_ID = "usr_H46J0njHrA";
 
@@ -260,7 +291,6 @@
         function toggleChat() {
             const win = document.getElementById('chatWindow');
             const toggleIcon = document.querySelector('#toggleBtn i');
-            
             if (win.classList.contains('open')) {
                 win.classList.remove('open');
                 toggleIcon.className = "fas fa-comment-dots";
@@ -273,22 +303,20 @@
             }
         }
 
-        // --- GIỮ NGUYÊN LOGIC TINODE CỦA CẬU ---
         async function initChat() {
             let TinodeConstructor = window.tinode || window.Tinode;
             if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
-            
+
             chatClient = new TinodeConstructor({ appName: 'HeoVang-Web', host: TINODE_HOST, apiKey: API_KEY });
 
             try {
                 await chatClient.connect();
                 document.getElementById('statusDot').style.background = "#00ff00";
 
-                // Gọi API Flask để gán nhân viên/phiên chat
-                const res = await fetch('/api/start_live_chat', { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ username: currentUser ? currentUser.username : null }) 
+                const res = await fetch('/api/start_live_chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser ? currentUser.username : null })
                 });
                 const sessionData = await res.json();
                 const STAFF_ID_TO_INVITE = sessionData.assigned_staff;
@@ -302,8 +330,7 @@
                 }
 
                 myCurrentID = ctrl.params.user;
-                
-                // Logic xử lý Topic và Nhóm chat (Giữ nguyên từ code của cậu)
+
                 let savedTopicName = sessionStorage.getItem('current_chat_topic');
                 const getParams = { what: "desc sub data", data: { limit: 50 } };
 
@@ -363,4 +390,5 @@
         initUI();
     </script>
 </body>
+
 </html>
