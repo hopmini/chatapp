@@ -1,220 +1,366 @@
-<title>Yte360 - Livechat Y Tế</title>
-<div class="navbar">
-    <div class="logo">🏥 Yte360 Livechat</div>
-    <div class="user-info" id="navAuth">
-        <a href="/login" class="btn">Đăng Nhập</a>
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yte360 - Trợ lý AI Thông minh</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2600/2600267.png" type="image/png">
+    <script src="/static/tinode.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ff9800, #ff5722);
+            --secondary-color: #00c853;
+            --bot-msg-bg: #ffffff;
+            --user-msg-bg: #00c853;
+            --bg-light: #f0f2f5;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+            color: #333;
+        }
+
+        /* Navbar hiện đại hơn */
+        .navbar {
+            background: var(--primary-gradient);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            background: white;
+            color: #ff5722;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            background: white;
+            border-radius: 0 0 50% 50% / 20px;
+        }
+
+        /* Bong bóng chat có hiệu ứng */
+        .chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0,200,83,0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .chat-toggle:hover { transform: scale(1.1) rotate(10deg); }
+
+        /* Cửa sổ Chat nâng cấp */
+        .chat-window {
+            position: fixed;
+            bottom: 115px;
+            right: 30px;
+            width: 400px;
+            height: 620px;
+            background: white;
+            border-radius: 25px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chat-window.open { display: flex; animation: slideIn 0.4s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-header {
+            background: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        /* Message Bubbles */
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message.me {
+            align-self: flex-end;
+            background: var(--user-msg-bg);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: var(--bot-msg-bg);
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+
+        .bot-container { display: flex; align-items: flex-end; gap: 10px; align-self: flex-start; }
+        .bot-avatar { width: 32px; height: 32px; border-radius: 50%; background: white; padding: 2px; }
+
+        .chat-footer {
+            padding: 15px 20px;
+            background: white;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 25px;
+            border: 1px solid #eee;
+            background: #f8f9fa;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .chat-footer input:focus { border-color: var(--secondary-color); }
+
+        .chat-footer button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+        .chat-footer button:hover { background: #00a846; }
+        .chat-footer button:disabled { background: #ccc; }
+
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo"><i class="fas fa-piggy-bank"></i> Heo Vàng</div>
+        <div class="user-info" id="navAuth">
+            <a href="/login" class="btn">Đăng Nhập</a>
+            <a href="/register" class="btn">Đăng Ký</a>
+        </div>
     </div>
-</div>
 
-<div class="hero">
-    <h1 id="greeting">Chăm sóc sức khỏe thông minh</h1>
-    <p>Hệ thống hỗ trợ y tế trực tuyến với trợ lý ảo AI Yte360.<br>Hãy chat ngay để được bác sĩ tư vấn!</p>
-    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" width="180">
-</div>
+    <div class="hero">
+        <h1 style="font-size: 42px; color: #222;">Quản lý tài chính thông minh</h1>
+        <p style="color: #666; font-size: 18px;">Chat ngay với AI để được tư vấn sức khỏe & tài chính!</p>
+        <img src="https://cdn-icons-png.flaticon.com/512/2600/2600267.png" width="150" style="margin-top: 30px;">
+    </div>
 
-<div class="chat-header">
-    <div class="title">Trợ lý Yte360</div>
-    <span class="status-dot" id="status"></span>
-</div>
+    <div class="chat-toggle" id="toggleBtn" onclick="toggleChat()">
+        <i class="fas fa-comment-dots"></i>
+    </div>
 
-<script>
-    // Đổi sang domain thực tế của service
-    const TINODE_HOST = "vichat.net";
-    const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
-    const BOT_ID = "usr_H46J0njHrA";
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 10px; height: 10px; background: #fff; border-radius: 50%;" id="statusDot"></div>
+                <span>Trợ lý Heo Vàng AI</span>
+            </div>
+            <i class="fas fa-times" onclick="toggleChat()" style="cursor: pointer; opacity: 0.8;"></i>
+        </div>
+        <div class="chat-body" id="messages">
+            <div class="bot-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+                <div class="message bot">
+                    <b>Trợ lý:</b><br>Chào bạn! Tôi có thể giúp gì cho bạn về sức khỏe hôm nay?
+                </div>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." disabled>
+            <button id="sendBtn" onclick="handleSend()" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
 
-    let chatClient = null;
-    let myTopic = null;
-    let currentUser = JSON.parse(localStorage.getItem('heovang_user'));
-    let myCurrentID = null;
+    <script>
+        // --- CẤU HÌNH KẾT NỐI VICHAT QUA HAPROXY ---
+        const TINODE_HOST = "localhost:8080"; // Gọi qua HAProxy cổng 8080
+        const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
+        const BOT_ID = "usr_H46J0njHrA";
 
-    function initUI() {
-        const nav = document.getElementById('navAuth');
-        const greet = document.getElementById('greeting');
-        if (currentUser) {
-            nav.innerHTML = `<span>Hi, ${currentUser.fullname}</span> <button class="btn" onclick="logout()">Thoát</button>`;
-            greet.innerText = `Chào mừng trở lại, ${currentUser.fullname}!`;
-        }
-    }
-    function logout() { localStorage.removeItem('heovang_user'); window.location.reload(); }
+        let chatClient = null;
+        let myTopic = null;
+        let currentUser = JSON.parse(localStorage.getItem('heovang_user'));
+        let myCurrentID = null;
 
-    function toggleChat() {
-        const win = document.getElementById('chatWindow');
-        if (win.classList.contains('open')) {
-            win.classList.remove('open');
-            setTimeout(() => win.style.display = 'none', 300); // Đợi animation đóng
-        } else {
-            win.style.display = 'flex';
-            // Trigger reflow để animation hoạt động
-            void win.offsetWidth;
-            win.classList.add('open');
-            const box = document.getElementById('messages');
-            box.scrollTop = box.scrollHeight;
-        }
-    }
-
-    async function initChat() {
-        let TinodeConstructor = window.tinode || window.Tinode;
-        if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
-        if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
-
-        chatClient = new TinodeConstructor({ appName: 'HeoVang-Main', host: TINODE_HOST, apiKey: API_KEY });
-        chatClient.enableLogging(true);
-
-        let ctrl = null;
-
-        try {
-            await chatClient.connect();
-
-            let loginPromise;
+        function initUI() {
             if (currentUser) {
-                loginPromise = chatClient.loginBasic(currentUser.username, currentUser.password);
+                document.getElementById('navAuth').innerHTML = `
+                    <span style="margin-right:15px; font-weight:bold;">Hi, ${currentUser.fullname}</span> 
+                    <button class="btn" onclick="logout()">Thoát</button>`;
+            }
+        }
+
+        function toggleChat() {
+            const win = document.getElementById('chatWindow');
+            const toggleIcon = document.querySelector('#toggleBtn i');
+            
+            if (win.classList.contains('open')) {
+                win.classList.remove('open');
+                toggleIcon.className = "fas fa-comment-dots";
+                setTimeout(() => win.style.display = 'none', 300);
             } else {
-                let guest = localStorage.getItem('guest_ss');
-                if (!guest) {
-                    const rnd = 'guest_' + Math.random().toString(36).substr(2, 6);
-                    guest = JSON.stringify({ u: rnd, p: rnd });
-                    localStorage.setItem('guest_ss', guest);
-                }
-                const g = JSON.parse(guest);
-                try { loginPromise = chatClient.loginBasic(g.u, g.p); }
-                catch { loginPromise = chatClient.createAccountBasic(g.u, g.p); }
+                win.style.display = 'flex';
+                win.classList.add('open');
+                toggleIcon.className = "fas fa-chevron-down";
+                if (!chatClient) initChat();
             }
-
-            try { ctrl = await loginPromise; } catch (e) {
-                if (currentUser && (e.code === 401 || e.code === 404)) {
-                    ctrl = await chatClient.createAccountBasic(currentUser.username, currentUser.password);
-                    const me = chatClient.getMeTopic();
-                    await me.setMeta({ desc: { public: { fn: currentUser.fullname } } });
-                }
-            }
-
-            // Cập nhật tên hiển thị nếu chưa có hoặc sai
-            if (chatClient.isAuthenticated()) {
-                let nameToShow = currentUser ? currentUser.fullname : "Khách";
-                // Kiểm tra xem có cần update không (để tránh spam request)
-                const me = chatClient.getMeTopic();
-                // Set tên "ngầm"
-                me.setMeta({ desc: { public: { fn: nameToShow } } }).catch(() => { });
-            }
-
-            if (ctrl && ctrl.params && ctrl.params.user) myCurrentID = ctrl.params.user;
-            document.getElementById('status').style.background = "#00e676"; // Online color
-
-            const me = chatClient.getMeTopic();
-            await me.subscribe({ get: { what: 'desc sub data' } });
-
-            myTopic = chatClient.getTopic(BOT_ID);
-            if (!myTopic) myTopic = chatClient.newTopicP2P(BOT_ID);
-
-            // Load lịch sử và kiểm tra chào
-            document.getElementById('messages').innerHTML = "";
-            await myTopic.subscribe({ get: { what: 'desc sub data', data: { limit: 50 } } });
-
-            document.getElementById('msgInput').disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-
-            // --- [LOGIC CHÀO TỰ ĐỘNG] ---
-            setTimeout(() => {
-                const msgBox = document.getElementById('messages');
-                // Nếu chưa có tin nhắn nào -> Gửi lệnh chào ngầm
-                if (msgBox.children.length === 0) {
-                    let customerName = currentUser ? currentUser.fullname : "bạn";
-                    console.log("👋 Auto Greet Triggered for:", customerName);
-                    // Gửi lệnh này nhưng KHÔNG hiển thị lên khung chat (đã filter ở addMessage)
-                    myTopic.publish("/start_greet " + customerName);
-
-                    // Fake typing ngay để người dùng thấy bot đang "soạn" lời chào
-                    showTyping(true);
-                }
-            }, 800);
-
-            myTopic.onData = (msg) => {
-                // Ẩn tin nhắn lệnh
-                if (msg.content.startsWith("/start_greet")) return;
-
-                if (msg.from === BOT_ID) {
-                    showTyping(false); // Tắt 3 chấm
-                    addMessage("Bot", msg.content, "bot");
-                }
-                else if (msg.from === myCurrentID || (currentUser && msg.from === currentUser.username)) {
-                    addMessage("Tôi", msg.content, "me");
-                }
-                else if (!currentUser && msg.from.startsWith("guest_")) {
-                    addMessage("Tôi", msg.content, "me");
-                }
-            };
-
-        } catch (err) {
-            console.error(err);
-            document.getElementById('status').style.background = "red";
-        }
-    }
-
-    function showTyping(show) {
-        const indicator = document.getElementById('typingIndicator');
-        const box = document.getElementById('messages');
-        if (show) {
-            indicator.style.display = 'flex';
-            box.scrollTop = box.scrollHeight;
-        } else {
-            indicator.style.display = 'none';
-        }
-    }
-
-    async function handleSend() {
-        const input = document.getElementById('msgInput');
-        const txt = input.value.trim();
-        if (!txt || !myTopic) return;
-        input.value = '';
-
-        // Hiện typing ngay lập tức (giả lập bot đang đọc)
-        showTyping(true);
-
-        try {
-            const sender = currentUser ? currentUser.username : JSON.parse(localStorage.getItem('guest_ss')).u;
-            fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: sender, content: txt, step: 'pre-send' }) });
-            await myTopic.publish(txt);
-        } catch (e) { console.error(e); }
-    }
-
-    function addMessage(sender, text, type) {
-        // Chặn hiển thị lệnh chào
-        if (text.startsWith("/start_greet")) return;
-
-        const box = document.getElementById('messages');
-
-        // Check duplicate
-        const lastChild = box.lastElementChild;
-        // Lưu ý: lastElementChild có thể là div 'bot-container' hoặc div 'message me'
-        if (lastChild) {
-            // Nếu là bot container thì tin nhắn nằm trong .message
-            const msgDiv = lastChild.querySelector('.message') || lastChild;
-            if (msgDiv.textContent === text && msgDiv.classList.contains(type)) return;
         }
 
-        if (type === 'bot') {
-            const container = document.createElement('div');
-            container.className = 'bot-container';
-            // Avatar icon
-            container.innerHTML = `
-                    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
-                    <div class="message bot">${text}</div>
-                `;
-            box.appendChild(container);
-        } else {
+        // --- GIỮ NGUYÊN LOGIC TINODE CỦA CẬU ---
+        async function initChat() {
+            let TinodeConstructor = window.tinode || window.Tinode;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
+            
+            chatClient = new TinodeConstructor({ appName: 'HeoVang-Web', host: TINODE_HOST, apiKey: API_KEY });
+
+            try {
+                await chatClient.connect();
+                document.getElementById('statusDot').style.background = "#00ff00";
+
+                // Gọi API Flask để gán nhân viên/phiên chat
+                const res = await fetch('/api/start_live_chat', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ username: currentUser ? currentUser.username : null }) 
+                });
+                const sessionData = await res.json();
+                const STAFF_ID_TO_INVITE = sessionData.assigned_staff;
+
+                let ctrl;
+                if (currentUser) {
+                    ctrl = await chatClient.loginBasic(currentUser.username, currentUser.password);
+                } else {
+                    try { ctrl = await chatClient.loginBasic(sessionData.guest_user, sessionData.guest_pass); }
+                    catch (err) { if (err.code === 401) ctrl = await chatClient.createAccountBasic(sessionData.guest_user, sessionData.guest_pass); else throw err; }
+                }
+
+                myCurrentID = ctrl.params.user;
+                
+                // Logic xử lý Topic và Nhóm chat (Giữ nguyên từ code của cậu)
+                let savedTopicName = sessionStorage.getItem('current_chat_topic');
+                const getParams = { what: "desc sub data", data: { limit: 50 } };
+
+                if (savedTopicName) {
+                    myTopic = chatClient.getTopic(savedTopicName);
+                    if (!myTopic) myTopic = chatClient.newTopicByName(savedTopicName);
+                    await myTopic.subscribe(getParams);
+                } else {
+                    const newTopicName = chatClient.newGroupTopicName(false);
+                    myTopic = chatClient.getTopic(newTopicName);
+                    await myTopic.subscribe(getParams, { desc: { public: { fn: "Hỗ trợ Y tế" } }, defacs: { auth: "JRWPS", anon: "N" } });
+                    sessionStorage.setItem('current_chat_topic', myTopic.name);
+                    try { await myTopic.invite(BOT_ID, "JRWPS"); } catch (e) { }
+                    if (STAFF_ID_TO_INVITE) try { await myTopic.invite(STAFF_ID_TO_INVITE, "JRWPS"); } catch (e) { }
+                }
+
+                myTopic.onData = (msg) => {
+                    if (!msg || !msg.content) return;
+                    const isMe = msg.from === myCurrentID;
+                    addMessage(isMe ? "Tôi" : "Trợ lý", msg.content, isMe ? "me" : "bot");
+                };
+
+                document.getElementById('msgInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+
+            } catch (e) {
+                console.error("Lỗi kết nối:", e);
+                document.getElementById('statusDot').style.background = "red";
+            }
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('msgInput');
+            const txt = input.value.trim();
+            if (!txt || !myTopic) return;
+            input.value = '';
+            try { await myTopic.publish(txt); } catch (e) { console.error(e); }
+        }
+
+        function addMessage(sender, text, type) {
+            const box = document.getElementById('messages');
             const div = document.createElement('div');
-            div.className = `message ${type}`;
-            div.textContent = text;
+            if (type === 'bot') {
+                div.className = 'bot-container';
+                div.innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+                    <div class="message bot"><b>${sender}:</b><br>${text}</div>`;
+            } else {
+                div.className = 'message me';
+                div.textContent = text;
+            }
             box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
         }
-        box.scrollTop = box.scrollHeight;
-    }
 
-    document.getElementById('msgInput').addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleSend();
-    });
-
-    initUI();
-    initChat();
-</script>
+        document.getElementById('msgInput').addEventListener("keypress", (e) => { if (e.key === "Enter") handleSend(); });
+        initUI();
+    </script>
+</body>
+</html>
