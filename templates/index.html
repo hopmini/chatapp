@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yte360 - Trang Chủ</title>
+    <script src="/static/tinode.js"></script>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: #f0f8ff;
+            color: #333;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #0288d1, #01579b);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info span {
+            font-weight: 500;
+            margin-right: 15px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            background: white;
+            color: #01579b;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 120px 20px;
+            background: white;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            color: #01579b;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #546e7a;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .hero img {
+            margin-top: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* --- CHAT WIDGET CSS --- */
+        .chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, #29b6f6, #0288d1);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(2, 136, 209, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .chat-toggle:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 380px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .chat-window.open {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #29b6f6, #0288d1);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header .title {
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #ccc;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .message.me {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #29b6f6, #0288d1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .bot-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            align-self: flex-start;
+            animation: fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            padding: 2px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+
+        .chat-footer {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-footer input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: 1px solid #e0e0e0;
+            background: #f9f9f9;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .chat-footer input:focus {
+            border-color: #0288d1;
+            background: white;
+        }
+
+        .chat-footer button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #29b6f6, #0288d1);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .chat-footer button:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-footer button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .typing-container {
+            display: none;
+            align-items: flex-end;
+            gap: 8px;
+            align-self: flex-start;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+
+        .typing-bubble {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-bubble span {
+            width: 6px;
+            height: 6px;
+            background: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-bubble span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-bubble span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <div class="logo">🏥 Yte360 System</div>
+        <div class="user-info" id="navAuth">
+            <a href="/login" class="btn">Đăng Nhập</a>
+            <a href="/register" class="btn" style="background:transparent; color:white; border:1px solid white;">Đăng
+                Ký</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1 id="greeting">Hệ thống Y Tế Thông Minh</h1>
+        <p>Giải pháp tư vấn và quản lý y tế toàn diện Yte360.<br>Chat ngay với trợ lý ảo AI để được hỗ trợ 24/7.</p>
+        <img src="https://cdn-icons-png.flaticon.com/512/3063/3063176.png" width="180">
+    </div>
+
+    <div class="chat-toggle" onclick="toggleChat()">💬</div>
+
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="title">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" width="24"
+                    style="filter: brightness(0) invert(1);">
+                Trợ lý Yte360
+            </div>
+            <span class="status-dot" id="status" title="Connecting..."></span>
+        </div>
+
+        <div class="chat-body" id="messages">
+        </div>
+
+        <div class="typing-container" id="typingIndicator">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+            <div class="typing-bubble">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="msgInput" placeholder="Nhập câu hỏi..." disabled>
+            <button id="sendBtn" onclick="handleSend()" disabled>➤</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CẤU HÌNH HOST VICHAT (QUAN TRỌNG) ---
+        const TINODE_HOST = "web.vichat.net";
+        const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
+
+        // ⚠️ ID của bot sẽ được bot.py tự động cập nhật vào đây.
+        // Bạn không cần sửa thủ công nếu dùng bot.py mới nhất.
+        const BOT_ID = "usrTWWT3r0d31I";
+
+        let chatClient = null;
+        let myTopic = null;
+        let currentUser = JSON.parse(localStorage.getItem('yte360_user'));
+        let myCurrentID = null;
+
+        function initUI() {
+            const nav = document.getElementById('navAuth');
+            const greet = document.getElementById('greeting');
+            if (currentUser) {
+                nav.innerHTML = `<span>Hi, ${currentUser.fullname}</span> <button class="btn" onclick="logout()">Thoát</button>`;
+                greet.innerText = `Chào mừng trở lại, ${currentUser.fullname}!`;
+            }
+        }
+        function logout() { localStorage.removeItem('yte360_user'); window.location.reload(); }
+
+        function toggleChat() {
+            const win = document.getElementById('chatWindow');
+            if (win.classList.contains('open')) {
+                win.classList.remove('open');
+                setTimeout(() => win.style.display = 'none', 300);
+            } else {
+                win.style.display = 'flex';
+                void win.offsetWidth;
+                win.classList.add('open');
+                const box = document.getElementById('messages');
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        async function initChat() {
+            let TinodeConstructor = window.tinode || window.Tinode;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
+
+            // KẾT NỐI VICHAT - BẮT BUỘC DÙNG secure: true VỚI SERVER THẬT
+            chatClient = new TinodeConstructor({
+                appName: 'Yte360-Web',
+                host: TINODE_HOST,
+                apiKey: API_KEY,
+                secure: true
+            });
+            chatClient.enableLogging(true);
+
+            let ctrl = null;
+
+            try {
+                await chatClient.connect();
+
+                // --- LOGIC ĐĂNG NHẬP MỚI (TỰ FIX LỖI 401/404) ---
+                let u, p, isGuest = false;
+
+                if (currentUser) {
+                    u = currentUser.username;
+                    p = currentUser.password;
+                } else {
+                    let guest = localStorage.getItem('guest_ss');
+                    if (!guest) {
+                        const rnd = 'guest_' + Math.random().toString(36).substr(2, 6);
+                        guest = JSON.stringify({ u: rnd, p: rnd });
+                        localStorage.setItem('guest_ss', guest);
+                    }
+                    const g = JSON.parse(guest);
+                    u = g.u;
+                    p = g.p;
+                    isGuest = true;
+                }
+
+                // Thử Login
+                try {
+                    ctrl = await chatClient.loginBasic(u, p);
+                    console.log("✅ Login thành công:", u);
+                } catch (e) {
+                    // Nếu lỗi 401 (Auth Failed) hoặc 404 (Not Found) -> Tài khoản chưa có trên server mới
+                    // -> TỰ ĐỘNG TẠO TÀI KHOẢN LUÔN
+                    if (e.code === 401 || e.code === 404) {
+                        console.log("⚠️ Login lỗi (401/404), đang tạo tài khoản mới cho:", u);
+                        ctrl = await chatClient.createAccountBasic(u, p, true);
+
+                        // Nếu là User thật -> Update lại tên hiển thị
+                        if (!isGuest && currentUser) {
+                            const me = chatClient.getMeTopic();
+                            await me.setMeta({ desc: { public: { fn: currentUser.fullname } } });
+                        }
+                    } else {
+                        throw e;
+                    }
+                }
+
+                if (chatClient.isAuthenticated()) {
+                    let nameToShow = currentUser ? currentUser.fullname : "Khách";
+                    // Chỉ update tên nếu là guest (để đảm bảo không bị Unnamed)
+                    if (isGuest) {
+                        const me = chatClient.getMeTopic();
+                        me.setMeta({ desc: { public: { fn: nameToShow } } }).catch(() => { });
+                    }
+                }
+
+                if (ctrl && ctrl.params && ctrl.params.user) myCurrentID = ctrl.params.user;
+                document.getElementById('status').style.background = "#00e676";
+
+                const me = chatClient.getMeTopic();
+                await me.subscribe({ get: { what: 'desc sub data' } });
+
+                // Subscribe vào BOT
+                myTopic = chatClient.getTopic(BOT_ID);
+                if (!myTopic) myTopic = chatClient.newTopicP2P(BOT_ID);
+
+                document.getElementById('messages').innerHTML = "";
+                await myTopic.subscribe({ get: { what: 'desc sub data', data: { limit: 50 } } });
+
+                document.getElementById('msgInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+
+                // Tự động chào khi mới vào (nếu khung chat trống)
+                setTimeout(() => {
+                    const msgBox = document.getElementById('messages');
+                    if (msgBox.children.length === 0) {
+                        let customerName = currentUser ? currentUser.fullname : "bạn";
+                        // Gửi lệnh chào ngầm
+                        myTopic.publish("/start_greet " + customerName);
+                        showTyping(true);
+                    }
+                }, 800);
+
+                // --- HÀM NHẬN TIN NHẮN (ĐÃ SỬA LỖI) ---
+                myTopic.onData = (msg) => {
+                    // 🛑 SAFETY CHECK: Kiểm tra msg và content có tồn tại không
+                    if (!msg || !msg.content) return;
+
+                    // 🛑 Kiểm tra kiểu dữ liệu (chỉ xử lý chuỗi)
+                    if (typeof msg.content !== 'string') return;
+
+                    // Ẩn tin nhắn lệnh hệ thống
+                    if (msg.content.startsWith("/start_greet")) return;
+
+                    if (msg.from === BOT_ID) {
+                        showTyping(false); // Bot trả lời -> Tắt typing
+                        addMessage("Bot", msg.content, "bot");
+                    }
+                    else if (msg.from === myCurrentID || (currentUser && msg.from === currentUser.username)) {
+                        addMessage("Tôi", msg.content, "me");
+                    }
+                    else if (!currentUser && msg.from.startsWith("guest_")) {
+                        addMessage("Tôi", msg.content, "me");
+                    }
+                };
+
+            } catch (err) {
+                console.error("Lỗi kết nối Vichat:", err);
+                document.getElementById('status').style.background = "red";
+                document.getElementById('status').title = "Lỗi kết nối";
+            }
+        }
+
+        function showTyping(show) {
+            const indicator = document.getElementById('typingIndicator');
+            const box = document.getElementById('messages');
+            if (show) {
+                indicator.style.display = 'flex';
+                box.scrollTop = box.scrollHeight;
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('msgInput');
+            const txt = input.value.trim();
+            if (!txt || !myTopic) return;
+            input.value = '';
+            showTyping(true);
+
+            try {
+                const sender = currentUser ? currentUser.username : JSON.parse(localStorage.getItem('guest_ss')).u;
+                // Log tin nhắn
+                fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: sender, content: txt, step: 'pre-send' }) });
+
+                // Gửi tin
+                await myTopic.publish(txt);
+            } catch (e) { console.error(e); }
+        }
+
+        function addMessage(sender, text, type) {
+            if (text.startsWith("/start_greet")) return;
+
+            const box = document.getElementById('messages');
+            const lastChild = box.lastElementChild;
+            if (lastChild) {
+                const msgDiv = lastChild.querySelector('.message') || lastChild;
+                if (msgDiv.textContent === text && msgDiv.classList.contains(type)) return;
+            }
+
+            if (type === 'bot') {
+                const container = document.createElement('div');
+                container.className = 'bot-container';
+                container.innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+                    <div class="message bot">${text}</div>
+                `;
+                box.appendChild(container);
+            } else {
+                const div = document.createElement('div');
+                div.className = `message ${type}`;
+                div.textContent = text;
+                box.appendChild(div);
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        document.getElementById('msgInput').addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleSend();
+        });
+
+        initUI();
+        initChat();
+    </script>
+</body>
+
+</html>

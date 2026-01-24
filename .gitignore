@@ -1,0 +1,11 @@
+venv/
+env/
+.env
+pycache/
+*.pyc
+*.db
+chat_logs.db
+yte360_logs.db
+.DS_Store
+.vscode/
+.idea/

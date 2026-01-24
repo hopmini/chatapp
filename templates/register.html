@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký - Yte360</title>
+    <script src="/static/tinode.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #e1f5fe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(1, 87, 155, 0.15);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: left;
+            color: #0288d1;
+            margin-top: 0;
+            font-weight: normal;
+            border-bottom: 2px solid #0288d1;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #f1f8e9;
+            border: none;
+            border-bottom: 2px solid #ccc;
+            color: #333;
+            outline: none;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-bottom-color: #0288d1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #01579b;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .link a {
+            color: #0288d1;
+            text-decoration: none;
+        }
+
+        #statusMsg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            min-height: 20px;
+        }
+
+        .loading {
+            color: #f9a825;
+        }
+
+        .success {
+            color: #2e7d32;
+        }
+
+        .error {
+            color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>Tạo Tài Khoản Yte360</h2>
+
+        <div class="form-group">
+            <label>Tên đăng nhập</label>
+            <input type="text" id="username" placeholder="vd: user123">
+        </div>
+
+        <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="password" placeholder="******">
+        </div>
+
+        <div class="form-group">
+            <label>Họ và tên</label>
+            <input type="text" id="fullname" placeholder="vd: Nguyễn Văn A">
+        </div>
+
+        <button onclick="processRegister()" id="regBtn">ĐĂNG KÝ NGAY</button>
+        <div id="statusMsg"></div>
+
+        <div class="link">
+            Đã có tài khoản? <a href="/login">Đăng nhập</a>
+        </div>
+    </div>
+
+    <script>
+        const TINODE_HOST = "web.vichat.net"; // Cập nhật host Vichat
+        const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
+
+        async function processRegister() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const fname = document.getElementById('fullname').value.trim();
+
+            const status = document.getElementById('statusMsg');
+            const btn = document.getElementById('regBtn');
+
+            if (!user || !pass || !fname) {
+                status.innerText = "Vui lòng điền đủ thông tin.";
+                status.className = "error";
+                return;
+            }
+
+            btn.disabled = true;
+            status.innerText = "Đang tạo tài khoản...";
+            status.className = "loading";
+
+            try {
+                // 1. Đăng ký vào Database Yte360 (Flask)
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass, fullname: fname })
+                });
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message);
+
+                // 2. Đăng ký lên Vichat
+                status.innerText = "Đang đồng bộ với Vichat...";
+                await registerTinode(user, pass, fname);
+
+                status.innerText = "Thành công! Đang chuyển trang...";
+                status.className = "success";
+
+                setTimeout(() => window.location.href = "/login", 1500);
+
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Lỗi: " + err.message;
+                status.className = "error";
+                btn.disabled = false;
+            }
+        }
+
+        async function registerTinode(u, p, fn) {
+            let TinodeConstructor = window.tinode || window.Tinode;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
+            if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
+
+            // KẾT NỐI VICHAT - THÊM secure: true
+            const client = new TinodeConstructor({
+                appName: 'Yte360-Reg',
+                host: TINODE_HOST,
+                apiKey: API_KEY,
+                secure: true // <--- QUAN TRỌNG
+            });
+
+            try {
+                await client.connect();
+                await client.createAccountBasic(u, p, true);
+
+                const me = client.getMeTopic();
+                await me.setMeta({ desc: { public: { fn: fn } } });
+            } catch (err) {
+                if (err.code === 409) {
+                    await client.loginBasic(u, p);
+                    const me = client.getMeTopic();
+                    await me.setMeta({ desc: { public: { fn: fn } } });
+                } else {
+                    throw err;
+                }
+            } finally {
+                client.disconnect();
+            }
+        }
+    </script>
+</body>
+
+</html>
