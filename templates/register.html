@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Ký - Yte360</title>
+    <title>Đăng Ký - Yte360 (Local)</title>
     <script src="/static/tinode.js"></script>
     <style>
         body {
@@ -175,7 +175,7 @@
                 if (data.status !== 'success') throw new Error(data.message);
 
                 // 2. Đăng ký lên Vichat
-                status.innerText = "Đang đồng bộ với Vichat...";
+                status.innerText = "Đang đồng bộ với Tinode Local...";
                 await registerTinode(user, pass, fname);
 
                 status.innerText = "Thành công! Đang chuyển trang...";
@@ -196,12 +196,12 @@
             if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
             if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
 
-            // KẾT NỐI VICHAT - THÊM secure: true
+            // KẾT NỐI LOCAL - secure: false
             const client = new TinodeConstructor({
                 appName: 'Yte360-Reg',
                 host: TINODE_HOST,
                 apiKey: API_KEY,
-                secure: true // <--- QUAN TRỌNG
+                secure: false // QUAN TRỌNG VỚI LOCALHOST
             });
 
             try {
