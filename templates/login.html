@@ -16,36 +16,7 @@
         <button onclick="handleLogin()" class="auth-btn">Vào App Ngay</button>
         <div class="auth-link">Chưa có tài khoản? <a href="/register">Đăng ký tại đây</a></div>
     </div>
-    <script>
-        async function handleLogin() {
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            if (!user || !pass) return alert("Nhập thiếu thông tin!");
-
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user, password: pass })
-                });
-                const data = await res.json();
-
-                if (data.status === 'success') {
-                    const userInfo = {
-                        username: data.user.username,
-                        password: pass,
-                        fullname: data.user.fullname
-                    };
-                    localStorage.setItem('yte360_user', JSON.stringify(userInfo));
-                    window.location.href = "/";
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert("Lỗi hệ thống: " + err.message);
-            }
-        }
-    </script>
+    <script src="/static/script.js"></script>
 </body>
 
 </html>
