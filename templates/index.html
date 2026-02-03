@@ -6,596 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Yte360 - Trang Chủ (Localhost)</title>
     <script src="/static/tinode.js"></script>
-    <style>
-        /* --- GLOBAL STYLES --- */
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: #f0f8ff;
-            color: #333;
-        }
-
-        .navbar {
-            background: linear-gradient(135deg, #0288d1, #01579b);
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
-            transition: padding 0.3s;
-        }
-
-        .logo {
-            font-size: 26px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .user-info span {
-            font-weight: 500;
-            margin-right: 15px;
-        }
-
-        .btn {
-            padding: 8px 20px;
-            border: none;
-            background: white;
-            color: #01579b;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero {
-            text-align: center;
-            padding: 120px 20px;
-            background: white;
-            transition: padding 0.3s;
-        }
-
-        .hero h1 {
-            font-size: 48px;
-            color: #01579b;
-            margin-bottom: 10px;
-            transition: font-size 0.3s;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: #546e7a;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        .hero img {
-            margin-top: 40px;
-            animation: float 3s ease-in-out infinite;
-            max-width: 100%;
-            height: auto;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-15px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        /* --- CHAT WIDGET CSS --- */
-        .chat-toggle {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 65px;
-            height: 65px;
-            background: linear-gradient(135deg, #29b6f6, #0288d1);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(2, 136, 209, 0.4);
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-
-        .chat-toggle:hover {
-            transform: scale(1.1) rotate(10deg);
-        }
-
-        .chat-window {
-            position: fixed;
-            bottom: 110px;
-            right: 30px;
-            width: 380px;
-            height: 600px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            display: none;
-            flex-direction: column;
-            z-index: 2000;
-            overflow: hidden;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .chat-window.open {
-            display: flex;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, #29b6f6, #0288d1);
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .chat-header .title {
-            font-weight: bold;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background: #ccc;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-            transition: background 0.3s;
-        }
-
-        .close-chat-btn {
-            display: none;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: bold;
-            opacity: 0.8;
-        }
-
-        .close-chat-btn:hover {
-            opacity: 1;
-        }
-
-        .chat-body {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-behavior: smooth;
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.5;
-            position: relative;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .message.me {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #29b6f6, #0288d1);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.bot {
-            align-self: flex-start;
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-        }
-
-        .bot-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-self: flex-start;
-            max-width: 85%;
-            animation: fadeIn 0.3s both;
-        }
-
-        .bot-row {
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-        }
-
-        .bot-avatar {
-            width: 32px;
-            height: 32px;
-            background: #fff;
-            border-radius: 50%;
-            padding: 2px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        /* Buttons in message */
-        .msg-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-left: 40px;
-            margin-top: 5px;
-        }
-
-        .action-btn {
-            background: #e3f2fd;
-            color: #0288d1;
-            border: 1px solid #b3e5fc;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .action-btn:hover {
-            background: #0288d1;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Footer & Quick Menu */
-        .chat-footer {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            position: relative;
-        }
-
-        .chat-footer input {
-            flex: 1;
-            padding: 12px 15px;
-            border-radius: 25px;
-            border: 1px solid #e0e0e0;
-            background: #f9f9f9;
-            outline: none;
-            transition: 0.2s;
-            font-size: 16px;
-            /* Prevent IOS zoom */
-        }
-
-        .chat-footer input:focus {
-            border-color: #0288d1;
-            background: white;
-        }
-
-        .chat-footer button.send-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #29b6f6, #0288d1);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            transition: 0.2s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-        }
-
-        .menu-toggle-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: #f0f2f5;
-            color: #0288d1;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .menu-toggle-btn:hover {
-            background: #e1f5fe;
-        }
-
-        .quick-menu-popup {
-            position: absolute;
-            bottom: 80px;
-            left: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.12);
-            padding: 15px;
-            display: none;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            z-index: 2000;
-            border: 1px solid #f0f0f0;
-            animation: slideUpFade 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .quick-menu-popup.show {
-            display: grid;
-        }
-
-        .quick-menu-popup button {
-            background: white;
-            border: 1px solid #e0e0e0;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #455a64;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: flex-start;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .quick-menu-popup button:active {
-            background: #f0f0f0;
-            transform: scale(0.98);
-        }
-
-        .typing-container {
-            display: none;
-            align-items: flex-end;
-            gap: 8px;
-            align-self: flex-start;
-            margin-bottom: 10px;
-            padding-left: 20px;
-        }
-
-        .typing-bubble {
-            background: white;
-            padding: 12px 15px;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            width: fit-content;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .typing-bubble span {
-            width: 6px;
-            height: 6px;
-            background: #bbb;
-            border-radius: 50%;
-            display: inline-block;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .typing-bubble span:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .typing-bubble span:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            80%,
-            100% {
-                transform: scale(0);
-            }
-
-            40% {
-                transform: scale(1);
-            }
-        }
-
-        @keyframes slideUpFade {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        /* --- RESPONSIVE MOBILE & TABLET --- */
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 15px 20px;
-            }
-
-            .hero h1 {
-                font-size: 36px;
-            }
-
-            .hero {
-                padding: 80px 20px;
-            }
-
-            .chat-window {
-                right: 20px;
-                bottom: 100px;
-                width: 340px;
-            }
-        }
-
-        @media (max-width: 480px) {
-
-            /* Navbar dọc */
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-                padding: 15px;
-            }
-
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .user-info span {
-                margin: 0;
-            }
-
-            .logo {
-                font-size: 24px;
-            }
-
-            /* Hero nhỏ gọn */
-            .hero {
-                padding: 40px 15px;
-            }
-
-            .hero h1 {
-                font-size: 28px;
-            }
-
-            .hero p {
-                font-size: 15px;
-            }
-
-            /* Nút Toggle Chat */
-            .chat-toggle {
-                width: 55px;
-                height: 55px;
-                font-size: 24px;
-                bottom: 20px;
-                right: 20px;
-            }
-
-            /* Chat Window FULL SCREEN */
-            .chat-window {
-                width: 100% !important;
-                height: 100% !important;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                border-radius: 0;
-                box-shadow: none;
-                transform: translateY(100%);
-                /* Slide từ dưới lên */
-            }
-
-            .chat-window.open {
-                transform: translateY(0);
-            }
-
-            /* Hiện nút đóng chat */
-            .close-chat-btn {
-                display: block;
-            }
-
-            /* Footer chat */
-            .chat-footer {
-                padding: 10px;
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
-            }
-
-            /* Menu nhanh 1 cột */
-            .quick-menu-popup {
-                grid-template-columns: 1fr;
-                bottom: 70px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
     <div class="navbar">
-        <div class="logo">🏥 Yte360 (Localhost)</div>
+        <div class="logo">🏥 Yte360 (Mobile)</div>
         <div class="user-info" id="navAuth">
-            <a href="/login" class="btn">Đăng Nhập</a>
-            <a href="/register" class="btn"
-                style="background:transparent; color:01579b; border:1px solid #01579b; margin-top:5px;">Đăng Ký</a>
+            <a href="/login" class="nav-btn">Đăng Nhập</a>
+            <a href="/register" class="nav-btn"
+                style="background:transparent; color:white; border:1px solid white;">Đăng Ký</a>
         </div>
     </div>
 
@@ -605,7 +26,7 @@
         <img src="https://cdn-icons-png.flaticon.com/512/3063/3063176.png" width="180">
     </div>
 
-    <div class="chat-toggle" onclick="toggleChat()">💬</div>
+    <div class="chat-toggle" onclick="toggleChat()">☎</div>
 
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
@@ -622,12 +43,11 @@
 
         <div class="chat-body" id="messages"></div>
 
-        <!-- MENU NHANH -->
         <div class="quick-menu-popup" id="quickMenu">
             <button onclick="sendQuickAction('📅 Đặt lịch khám')">📅 Đặt lịch khám</button>
+            <button onclick="sendQuickAction('🔢 Số chờ hiện tại')">🔢 Số chờ (Siêu âm)</button>
             <button onclick="sendQuickAction('💊 Tra cứu thuốc')">💊 Tra cứu thuốc</button>
             <button onclick="sendQuickAction('📋 Hướng dẫn sử dụng')">📋 Hướng dẫn</button>
-            <button onclick="sendQuickAction('📞 Gặp bác sĩ')">📞 Gặp bác sĩ</button>
             <button onclick="sendQuickAction('💰 Bảng giá dịch vụ')">💰 Bảng giá</button>
             <button onclick="sendQuickAction('🏥 Danh sách bệnh viện')">🏥 Bệnh viện</button>
         </div>
@@ -645,22 +65,21 @@
     </div>
 
     <script>
-        const TINODE_HOST = "web.vichat.net";
+        const TINODE_HOST = "localhost:6060";
         const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
-
-        // ⚠️ CẬP NHẬT ID BOT TỪ TERMINAL NẾU BỊ ĐỔI
-        const BOT_ID = "usrTWWT3r0d31I";
+        const BOT_ID = "usrCcO7S1l0PNA";
 
         let chatClient = null;
         let myTopic = null;
         let currentUser = JSON.parse(localStorage.getItem('yte360_user'));
         let myCurrentID = null;
+        let isConnected = false;
 
         function initUI() {
             const nav = document.getElementById('navAuth');
             const greet = document.getElementById('greeting');
             if (currentUser) {
-                nav.innerHTML = `<span>Hi, ${currentUser.fullname}</span> <button class="btn" onclick="logout()">Thoát</button>`;
+                nav.innerHTML = `<span>Hi, ${currentUser.fullname}</span> <button class="nav-btn" onclick="logout()">Thoát</button>`;
                 greet.innerText = `Chào mừng trở lại, ${currentUser.fullname}!`;
             }
         }
@@ -672,16 +91,18 @@
 
             if (win.classList.contains('open')) {
                 win.classList.remove('open');
-                // Đóng menu nếu đang mở khi tắt chat
                 quickMenu.classList.remove('show');
                 setTimeout(() => win.style.display = 'none', 300);
             } else {
                 win.style.display = 'flex';
-                // Trigger reflow
                 void win.offsetWidth;
                 win.classList.add('open');
                 const box = document.getElementById('messages');
                 box.scrollTop = box.scrollHeight;
+
+                if (box.children.length === 0 && isConnected && myTopic) {
+                    sendGreeting();
+                }
             }
         }
 
@@ -695,6 +116,183 @@
             document.getElementById('quickMenu').classList.remove('show');
         }
 
+        // --- HÀM HIỂN THỊ FORM ĐẦY ĐỦ (ALL-IN-ONE) ---
+        function showFullBookingForm() {
+            const box = document.getElementById('messages');
+            const formDiv = document.createElement('div');
+            formDiv.className = 'chat-form';
+            formDiv.id = 'fullBookingFormUi';
+
+            formDiv.innerHTML = `
+                <div class="form-header">
+                    <h4>📝 Phiếu Đăng Ký Khám</h4>
+                </div>
+                <div class="form-body">
+                    <!-- THÔNG TIN CÁ NHÂN -->
+                    <div class="form-group-row">
+                        <label class="form-label">Họ và Tên</label>
+                        <input type="text" id="inpName" class="form-control" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="form-group-row two-col">
+                        <div>
+                            <label class="form-label">Năm sinh</label>
+                            <input type="number" id="inpDob" class="form-control" placeholder="1990">
+                        </div>
+                        <div>
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" id="inpPhone" class="form-control" placeholder="09xxx">
+                        </div>
+                    </div>
+
+                    <!-- ĐỊA CHỈ -->
+                    <div class="form-group-row">
+                        <label class="form-label">Tỉnh / Thành phố</label>
+                        <select id="selProvince" class="form-control" onchange="loadDistricts()">
+                            <option value="">-- Chọn Tỉnh/TP --</option>
+                        </select>
+                    </div>
+                    <div class="form-group-row two-col">
+                        <div>
+                            <label class="form-label">Quận / Huyện</label>
+                            <select id="selDistrict" class="form-control" disabled onchange="loadWards()">
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Phường / Xã</label>
+                            <select id="selWard" class="form-control" disabled>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group-row">
+                        <label class="form-label">Số nhà, Tên đường</label>
+                        <input type="text" id="inpStreet" class="form-control" placeholder="Nhập số nhà...">
+                    </div>
+
+                    <!-- THỜI GIAN KHÁM -->
+                    <div class="form-group-row">
+                        <label class="form-label">Thời gian khám dự kiến</label>
+                        <input type="datetime-local" id="inpTime" class="form-control">
+                    </div>
+
+                    <!-- LÝ DO -->
+                    <div class="form-group-row">
+                        <label class="form-label">Lý do khám / Triệu chứng</label>
+                        <textarea id="inpReason" class="form-control" rows="2" placeholder="VD: Đau đầu, sốt..."></textarea>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <button class="submit-form-btn" onclick="submitFullForm()">✅ Gửi Đăng Ký</button>
+                </div>
+            `;
+            box.appendChild(formDiv);
+            box.scrollTop = box.scrollHeight;
+
+            // Tải danh sách Tỉnh/Thành
+            fetch('https://provinces.open-api.vn/api/p/')
+                .then(res => res.json())
+                .then(data => {
+                    const sel = document.getElementById('selProvince');
+                    data.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.code;
+                        opt.text = p.name;
+                        opt.dataset.json = JSON.stringify({ code: p.code, name: p.name });
+                        sel.add(opt);
+                    });
+                })
+                .catch(err => console.error("Lỗi tải tỉnh:", err));
+        }
+
+        window.loadDistricts = function () {
+            const pCode = document.getElementById('selProvince').value;
+            const selDist = document.getElementById('selDistrict');
+            const selWard = document.getElementById('selWard');
+            selDist.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            selWard.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            selDist.disabled = true; selWard.disabled = true;
+            if (!pCode) return;
+            fetch(`https://provinces.open-api.vn/api/p/${pCode}?depth=2`).then(res => res.json()).then(data => {
+                data.districts.forEach(d => {
+                    const opt = document.createElement('option'); opt.value = d.code; opt.text = d.name;
+                    opt.dataset.json = JSON.stringify({ code: d.code, name: d.name }); selDist.add(opt);
+                }); selDist.disabled = false;
+            });
+        }
+
+        window.loadWards = function () {
+            const dCode = document.getElementById('selDistrict').value;
+            const selWard = document.getElementById('selWard');
+            selWard.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            selWard.disabled = true;
+            if (!dCode) return;
+            fetch(`https://provinces.open-api.vn/api/d/${dCode}?depth=2`).then(res => res.json()).then(data => {
+                data.wards.forEach(w => {
+                    const opt = document.createElement('option'); opt.value = w.code; opt.text = w.name;
+                    opt.dataset.json = JSON.stringify({ code: w.code, name: w.name }); selWard.add(opt);
+                }); selWard.disabled = false;
+            });
+        }
+
+        window.submitFullForm = function () {
+            // Lấy dữ liệu từ form
+            const name = document.getElementById('inpName').value.trim();
+            const dob = document.getElementById('inpDob').value.trim();
+            const phone = document.getElementById('inpPhone').value.trim();
+            const selProvince = document.getElementById('selProvince');
+            const selDistrict = document.getElementById('selDistrict');
+            const selWard = document.getElementById('selWard');
+            const street = document.getElementById('inpStreet').value.trim();
+            const timeStr = document.getElementById('inpTime').value;
+            const reason = document.getElementById('inpReason').value.trim();
+
+            if (!name || !dob || !phone || !selProvince.value || !selDistrict.value || !selWard.value || !timeStr || !reason) {
+                alert("Vui lòng điền đầy đủ thông tin!");
+                return;
+            }
+
+            // Xử lý địa chỉ JSON
+            const provinceData = JSON.parse(selProvince.options[selProvince.selectedIndex].dataset.json);
+            const districtData = JSON.parse(selDistrict.options[selDistrict.selectedIndex].dataset.json);
+            const wardData = JSON.parse(selWard.options[selWard.selectedIndex].dataset.json);
+
+            // Xử lý ngày giờ
+            const dt = new Date(timeStr);
+            const ts = Math.floor(dt.getTime() / 1000);
+            const hours = dt.getHours();
+
+            if (hours < 7 || hours > 17) {
+                alert("Giờ khám phải từ 07:00 đến 17:00");
+                return;
+            }
+
+            // Tạo gói dữ liệu JSON
+            const formData = {
+                is_full_form: true,
+                data: {
+                    ho_ten: name,
+                    ngay_sinh: dob + "0101", // Mặc định ngày tháng 01/01
+                    so_dien_thoai: phone,
+                    email: "auto@example.com",
+                    dia_chi_json: { tinh: provinceData, huyen: districtData, xa: wardData },
+                    dia_chi_ct: street,
+                    ngay_hen_ts: ts,
+                    gio_hen: hours,
+                    ghi_chu: reason
+                }
+            };
+
+            // Gửi dữ liệu đi
+            handleSend(JSON.stringify(formData));
+
+            // Xóa form
+            document.getElementById('fullBookingFormUi').remove();
+
+            // Hiện tin nhắn của mình
+            addMessage("Tôi", "✅ Đã gửi phiếu đăng ký", "me");
+        }
+
         async function initChat() {
             let TinodeConstructor = window.tinode || window.Tinode;
             if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
@@ -704,13 +302,15 @@
                 appName: 'Yte360-Web',
                 host: TINODE_HOST,
                 apiKey: API_KEY,
-                secure: true
+                secure: false
             });
             chatClient.enableLogging(true);
             let ctrl = null;
 
             try {
                 await chatClient.connect();
+                isConnected = true;
+
                 let u, p, isGuest = false;
                 if (currentUser) {
                     u = currentUser.username; p = currentUser.password;
@@ -761,11 +361,9 @@
                 setTimeout(() => {
                     const msgBox = document.getElementById('messages');
                     if (msgBox.children.length === 0) {
-                        let customerName = currentUser ? currentUser.fullname : "bạn";
-                        myTopic.publish("/start_greet " + customerName);
-                        showTyping(true);
+                        sendGreeting();
                     }
-                }, 800);
+                }, 1000);
 
                 myTopic.onData = (msg) => {
                     if (!msg || !msg.content) return;
@@ -775,25 +373,51 @@
                         showTyping(false);
                         try {
                             const jsonData = JSON.parse(msg.content);
-                            if (jsonData && jsonData.is_rich_text) {
-                                addMessageWithButtons("Bot", jsonData.text, jsonData.buttons);
+
+                            if (jsonData.clear_id) {
+                                const el = document.getElementById(jsonData.clear_id);
+                                if (el) el.remove();
+                            }
+
+                            const inputType = jsonData.input_type || 'text';
+
+                            // HIỆN FORM ĐẦY ĐỦ NẾU ĐƯỢC YÊU CẦU
+                            if (inputType === 'full_booking_form') {
+                                addMessage("Bot", jsonData.text, "bot", jsonData.temp_id);
+                                showFullBookingForm();
+                                return;
+                            }
+
+                            // 2. HIỂN THỊ TIN NHẮN
+                            if (jsonData.is_rich_text) {
+                                addMessageWithButtons("Bot", jsonData.text, jsonData.buttons, jsonData.temp_id);
                             } else {
-                                addMessage("Bot", msg.content, "bot");
+                                addMessage("Bot", msg.content, "bot", jsonData.temp_id);
                             }
                         } catch (e) {
                             addMessage("Bot", msg.content, "bot");
                         }
                     } else if (msg.from === myCurrentID || (currentUser && msg.from === currentUser.username)) {
-                        addMessage("Tôi", msg.content, "me");
-                    } else if (!currentUser && msg.from.startsWith("guest_")) {
-                        addMessage("Tôi", msg.content, "me");
+                        if (typeof msg.content === 'string' && msg.content.trim().startsWith('{"is_full_form":')) {
+                            // Không hiển thị JSON raw
+                        } else {
+                            addMessage("Tôi", msg.content, "me");
+                        }
                     }
                 };
 
             } catch (err) {
                 console.error("Lỗi kết nối:", err);
                 document.getElementById('status').style.background = "red";
+                isConnected = false;
             }
+        }
+
+        function sendGreeting() {
+            if (!myTopic) return;
+            let customerName = currentUser ? currentUser.fullname : "bạn";
+            myTopic.publish("/start_greet " + customerName);
+            showTyping(true);
         }
 
         function showTyping(show) {
@@ -812,6 +436,9 @@
             const txt = customText || input.value.trim();
 
             if (!txt || !myTopic) return;
+
+            cleanupOldInteractions();
+
             if (!customText) input.value = '';
 
             document.getElementById('quickMenu').classList.remove('show');
@@ -824,7 +451,12 @@
             } catch (e) { console.error(e); }
         }
 
-        function addMessage(sender, text, type) {
+        function cleanupOldInteractions() {
+            const actions = document.querySelectorAll('.msg-actions');
+            actions.forEach(el => el.remove());
+        }
+
+        function addMessage(sender, text, type, elemId = null) {
             if (!text || typeof text !== 'string') return;
             if (text.startsWith("/start_greet")) return;
 
@@ -832,6 +464,8 @@
             if (type === 'bot') {
                 const container = document.createElement('div');
                 container.className = 'bot-container';
+                if (elemId) container.id = elemId;
+
                 container.innerHTML = `
                     <div class="bot-row">
                         <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
@@ -848,10 +482,11 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        function addMessageWithButtons(sender, text, buttons) {
+        function addMessageWithButtons(sender, text, buttons, elemId = null) {
             const box = document.getElementById('messages');
             const container = document.createElement('div');
             container.className = 'bot-container';
+            if (elemId) container.id = elemId;
 
             let html = `
                 <div class="bot-row">
@@ -860,19 +495,17 @@
                 </div>
                 <div class="msg-actions">
             `;
-
-            buttons.forEach(btn => {
-                const val = btn.value;
-                // Nếu value là đường dẫn web (bắt đầu bằng http)
-                if (val.startsWith("http")) {
-                    html += `<button class="action-btn" onclick="window.open('${val}', '_blank')">${btn.label}</button>`;
-                } else {
-                    // Nếu là text bình thường
-                    const safeVal = val.replace(/'/g, "\\'");
-                    html += `<button class="action-btn" onclick="handleSend('${safeVal}')">${btn.label}</button>`;
-                }
-            });
-
+            if (buttons) {
+                buttons.forEach(btn => {
+                    const val = btn.value;
+                    if (val.startsWith("http")) {
+                        html += `<button class="action-btn" onclick="window.open('${val}', '_blank')">${btn.label}</button>`;
+                    } else {
+                        const safeVal = val.replace(/'/g, "\\'");
+                        html += `<button class="action-btn" onclick="handleSend('${safeVal}')">${btn.label}</button>`;
+                    }
+                });
+            }
             html += `</div>`;
             container.innerHTML = html;
             box.appendChild(container);

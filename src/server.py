@@ -10,6 +10,7 @@ logger = logging.getLogger("Yte360_Server")
 
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
 # Xác định thư mục gốc (Root) của dự án
+# Giả sử cấu trúc: /src/server.py và /templates, /static nằm cùng cấp với /src
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.abspath(os.path.join(current_dir, '..'))
 

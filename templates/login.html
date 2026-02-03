@@ -5,76 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Nhập - Yte360</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #e3f2fd;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-
-        h2 {
-            color: #0288d1;
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #0288d1;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #01579b;
-        }
-
-        .link {
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        .link a {
-            color: #ff9800;
-            text-decoration: none;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
-<body>
-    <div class="card">
+<body class="auth-body">
+    <div class="auth-card">
         <h2>Đăng Nhập Yte360</h2>
-        <input type="text" id="username" placeholder="Tên đăng nhập">
-        <input type="password" id="password" placeholder="Mật khẩu">
-        <button onclick="handleLogin()">Vào App Ngay</button>
-        <div class="link">Chưa có tài khoản? <a href="/register">Đăng ký tại đây</a></div>
+        <input type="text" id="username" class="auth-input" placeholder="Tên đăng nhập">
+        <input type="password" id="password" class="auth-input" placeholder="Mật khẩu">
+        <button onclick="handleLogin()" class="auth-btn">Vào App Ngay</button>
+        <div class="auth-link">Chưa có tài khoản? <a href="/register">Đăng ký tại đây</a></div>
     </div>
     <script>
         async function handleLogin() {
