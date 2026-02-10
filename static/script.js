@@ -1,6 +1,6 @@
-const TINODE_HOST = "localhost:6060";
+const TINODE_HOST = "web.vichat.net";
 const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
-const BOT_ID = "usrCcO7S1l0PNA";
+const BOT_ID = "usrTWWT3r0d31I";
 
 let chatClient = null;
 let myTopic = null;
@@ -236,7 +236,7 @@ async function initChat() {
         appName: 'Yte360-Web',
         host: TINODE_HOST,
         apiKey: API_KEY,
-        secure: false
+        secure: true
     });
     chatClient.enableLogging(true);
     let ctrl = null;
@@ -535,13 +535,13 @@ async function registerTinode(u, p, fn) {
     if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
     if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
 
-    // KẾT NỐI LOCAL - secure: false (vì localhost thường không có SSL)
-    const client = new TinodeConstructor({
-        appName: 'Yte360-Reg',
-        host: TINODE_HOST,
-        apiKey: API_KEY,
-        secure: false
-    });
+    // // KẾT NỐI LOCAL - secure: false (vì localhost thường không có SSL)
+    // const client = new TinodeConstructor({
+    //     appName: 'Yte360-Reg',
+    //     host: TINODE_HOST,
+    //     apiKey: API_KEY,
+    //     secure: false
+    // });
 
     try {
         await client.connect();
