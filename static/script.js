@@ -8,8 +8,6 @@ let currentUser = JSON.parse(localStorage.getItem('yte360_user'));
 let myCurrentID = null;
 let isConnected = false;
 
-
-
 // ----------- INDEX -----------
 function initUI() {
     const nav = document.getElementById('navAuth');
@@ -454,7 +452,7 @@ document.getElementById('msgInput').addEventListener("keypress", (e) => {
 
 initUI();
 initChat();
-
+//  --------------------------
 //  --------- LOGIN --------- 
 async function handleLogin() {
     const user = document.getElementById('username').value.trim();

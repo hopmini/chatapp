@@ -9,19 +9,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - SERVER - %(message
 logger = logging.getLogger("Yte360_Server")
 
 # --- CẤU HÌNH ĐƯỜNG DẪN ---
-# Xác định thư mục gốc (Root) của dự án
-# Giả sử cấu trúc: /src/server.py và /templates, /static nằm cùng cấp với /src
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.abspath(os.path.join(current_dir, '..'))
 
-# Trỏ đúng đường dẫn tới thư mục templates và static ở Root
 template_dir = os.path.join(root_path, 'templates')
 static_dir = os.path.join(root_path, 'static')
 
-# Khởi tạo Flask App
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
-# File Database (Lưu ngay tại thư mục gốc)
 DB_NAME = os.path.join(root_path, "yte360_logs.db")
 
 # --- DATABASE HELPER ---
