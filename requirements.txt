@@ -2,3 +2,5 @@ Flask
 websocket-client
 openai
 requests
+langchain
+langchain-core

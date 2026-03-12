@@ -1,6 +1,60 @@
 const TINODE_HOST = "web.vichat.net";
 const API_KEY = "AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K";
-const BOT_ID = "usrTWWT3r0d31I";
+const BOT_ID = "usrYNFP5st2G0g";
+
+// =============================================================================
+// LOGGER — Console đẹp có màu + group
+// =============================================================================
+const Log = {
+    _style: {
+        tag: 'font-weight:600; padding:2px 6px; border-radius:3px; color:#fff;',
+        reset: 'color:inherit; font-weight:normal;',
+    },
+    _fmt(color, label) {
+        return [`%c ${label} %c`, `background:${color};` + this._style.tag, this._style.reset];
+    },
+    info(label, ...args) {
+        const [fmt, s1, s2] = this._fmt('#2196f3', label);
+        console.log(fmt, s1, s2, ...args);
+    },
+    ok(label, ...args) {
+        const [fmt, s1, s2] = this._fmt('#4caf50', label);
+        console.log(fmt, s1, s2, ...args);
+    },
+    warn(label, ...args) {
+        const [fmt, s1, s2] = this._fmt('#ff9800', label);
+        console.warn(fmt, s1, s2, ...args);
+    },
+    error(label, ...args) {
+        const [fmt, s1, s2] = this._fmt('#f44336', label);
+        console.error(fmt, s1, s2, ...args);
+    },
+    group(label, color, fn) {
+        const [fmt, s1, s2] = this._fmt(color, label);
+        console.groupCollapsed(fmt, s1, s2);
+        fn();
+        console.groupEnd();
+    },
+    msg(dir, topic, content) {
+        const icon = dir === 'in' ? '📨' : '📤';
+        const color = dir === 'in' ? '#7b1fa2' : '#00796b';
+        const label = dir === 'in' ? 'MSG IN' : 'MSG OUT';
+        this.group(`${icon} ${label}`, color, () => {
+            console.log('Topic  :', topic);
+            console.log('Content:', content);
+        });
+    },
+};
+
+
+/**
+ * Tự động nhận diện Key dựa trên Domain hiện tại
+ */
+function getWidgetKey() {
+    const host = window.location.hostname;
+    Log.info("🔍 Domain", host);
+    return host;
+}
 
 let chatClient = null;
 let myTopic = null;
@@ -8,16 +62,26 @@ let currentUser = JSON.parse(localStorage.getItem('yte360_user'));
 let myCurrentID = null;
 let isConnected = false;
 
-// ----------- INDEX -----------
+// ✅ Lazy init — chỉ kết nối Tinode khi user mở chat lần đầu
+let chatInitialized = false;
+
+// ----------- INDEX UI -----------
 function initUI() {
     const nav = document.getElementById('navAuth');
     const greet = document.getElementById('greeting');
-    if (currentUser) {
+    if (currentUser && nav && greet) {
         nav.innerHTML = `<span>Hi, ${currentUser.fullname}</span> <button class="nav-btn" onclick="logout()">Thoát</button>`;
         greet.innerText = `Chào mừng trở lại, ${currentUser.fullname}!`;
     }
 }
-function logout() { localStorage.removeItem('yte360_user'); window.location.reload(); }
+
+function logout() {
+    Log.warn("🚪 Logout", "User đăng xuất");
+    localStorage.removeItem('yte360_user');
+    localStorage.removeItem('guest_ss');
+    sessionStorage.clear();
+    window.location.reload();
+}
 
 function toggleChat() {
     const win = document.getElementById('chatWindow');
@@ -25,32 +89,39 @@ function toggleChat() {
 
     if (win.classList.contains('open')) {
         win.classList.remove('open');
-        quickMenu.classList.remove('show');
+        if (quickMenu) quickMenu.classList.remove('show');
         setTimeout(() => win.style.display = 'none', 300);
     } else {
         win.style.display = 'flex';
         void win.offsetWidth;
         win.classList.add('open');
         const box = document.getElementById('messages');
-        box.scrollTop = box.scrollHeight;
+        if (box) box.scrollTop = box.scrollHeight;
 
-        if (box.children.length === 0 && isConnected && myTopic) {
-            sendGreeting();
+        // ✅ Lazy init: chỉ khởi tạo Tinode lần đầu mở chat
+        if (!chatInitialized) {
+            Log.info("💬 Chat", "Lần đầu mở → khởi tạo Tinode");
+            chatInitialized = true;
+            initChat();
+        } else {
+            Log.info("💬 Chat", `Mở lại — connected=${isConnected}`);
+            if (isConnected && myTopic) sendGreeting();
         }
     }
 }
 
 function toggleQuickMenu() {
     const menu = document.getElementById('quickMenu');
-    menu.classList.toggle('show');
+    if (menu) menu.classList.toggle('show');
 }
 
 function sendQuickAction(text) {
     handleSend(text);
-    document.getElementById('quickMenu').classList.remove('show');
+    const menu = document.getElementById('quickMenu');
+    if (menu) menu.classList.remove('show');
 }
 
-// --- HÀM HIỂN THỊ FORM ĐẦY ĐỦ (ALL-IN-ONE) ---
+// --- FORM ĐĂNG KÝ ---
 function showFullBookingForm() {
     const box = document.getElementById('messages');
     const formDiv = document.createElement('div');
@@ -58,72 +129,62 @@ function showFullBookingForm() {
     formDiv.id = 'fullBookingFormUi';
 
     formDiv.innerHTML = `
-                <div class="form-header">
-                    <h4>📝 Phiếu Đăng Ký Khám</h4>
+        <div class="form-header"><h4>📝 Phiếu Đăng Ký Khám</h4></div>
+        <div class="form-body">
+            <div class="form-group-row">
+                <label class="form-label">Họ và Tên</label>
+                <input type="text" id="inpName" class="form-control" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="form-group-row two-col">
+                <div>
+                    <label class="form-label">Năm sinh</label>
+                    <input type="number" id="inpDob" class="form-control" placeholder="1990">
                 </div>
-                <div class="form-body">
-                    <!-- THÔNG TIN CÁ NHÂN -->
-                    <div class="form-group-row">
-                        <label class="form-label">Họ và Tên</label>
-                        <input type="text" id="inpName" class="form-control" placeholder="Nguyễn Văn A">
-                    </div>
-                    <div class="form-group-row two-col">
-                        <div>
-                            <label class="form-label">Năm sinh</label>
-                            <input type="number" id="inpDob" class="form-control" placeholder="1990">
-                        </div>
-                        <div>
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="tel" id="inpPhone" class="form-control" placeholder="09xxx">
-                        </div>
-                    </div>
-
-                    <!-- ĐỊA CHỈ -->
-                    <div class="form-group-row">
-                        <label class="form-label">Tỉnh / Thành phố</label>
-                        <select id="selProvince" class="form-control" onchange="loadDistricts()">
-                            <option value="">-- Chọn Tỉnh/TP --</option>
-                        </select>
-                    </div>
-                    <div class="form-group-row two-col">
-                        <div>
-                            <label class="form-label">Quận / Huyện</label>
-                            <select id="selDistrict" class="form-control" disabled onchange="loadWards()">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Phường / Xã</label>
-                            <select id="selWard" class="form-control" disabled>
-                                <option value="">-- Chọn --</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group-row">
-                        <label class="form-label">Số nhà, Tên đường</label>
-                        <input type="text" id="inpStreet" class="form-control" placeholder="Nhập số nhà...">
-                    </div>
-
-                    <!-- THỜI GIAN KHÁM -->
-                    <div class="form-group-row">
-                        <label class="form-label">Thời gian khám dự kiến</label>
-                        <input type="datetime-local" id="inpTime" class="form-control">
-                    </div>
-
-                    <!-- LÝ DO -->
-                    <div class="form-group-row">
-                        <label class="form-label">Lý do khám / Triệu chứng</label>
-                        <textarea id="inpReason" class="form-control" rows="2" placeholder="VD: Đau đầu, sốt..."></textarea>
-                    </div>
+                <div>
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" id="inpPhone" class="form-control" placeholder="09xxx">
                 </div>
-                <div class="form-footer">
-                    <button class="submit-form-btn" onclick="submitFullForm()">✅ Gửi Đăng Ký</button>
+            </div>
+            <div class="form-group-row">
+                <label class="form-label">Tỉnh / Thành phố</label>
+                <select id="selProvince" class="form-control" onchange="loadDistricts()">
+                    <option value="">-- Chọn Tỉnh/TP --</option>
+                </select>
+            </div>
+            <div class="form-group-row two-col">
+                <div>
+                    <label class="form-label">Quận / Huyện</label>
+                    <select id="selDistrict" class="form-control" disabled onchange="loadWards()">
+                        <option value="">-- Chọn --</option>
+                    </select>
                 </div>
-            `;
+                <div>
+                    <label class="form-label">Phường / Xã</label>
+                    <select id="selWard" class="form-control" disabled>
+                        <option value="">-- Chọn --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group-row">
+                <label class="form-label">Số nhà, Tên đường</label>
+                <input type="text" id="inpStreet" class="form-control" placeholder="Nhập số nhà...">
+            </div>
+            <div class="form-group-row">
+                <label class="form-label">Thời gian khám dự kiến</label>
+                <input type="datetime-local" id="inpTime" class="form-control">
+            </div>
+            <div class="form-group-row">
+                <label class="form-label">Lý do khám / Triệu chứng</label>
+                <textarea id="inpReason" class="form-control" rows="2" placeholder="VD: Đau đầu, sốt..."></textarea>
+            </div>
+        </div>
+        <div class="form-footer">
+            <button class="submit-form-btn" onclick="submitFullForm()">✅ Gửi Đăng Ký</button>
+        </div>
+    `;
     box.appendChild(formDiv);
     box.scrollTop = box.scrollHeight;
 
-    // Tải danh sách Tỉnh/Thành
     fetch('https://provinces.open-api.vn/api/p/')
         .then(res => res.json())
         .then(data => {
@@ -135,8 +196,7 @@ function showFullBookingForm() {
                 opt.dataset.json = JSON.stringify({ code: p.code, name: p.name });
                 sel.add(opt);
             });
-        })
-        .catch(err => console.error("Lỗi tải tỉnh:", err));
+        });
 }
 
 window.loadDistricts = function () {
@@ -145,15 +205,22 @@ window.loadDistricts = function () {
     const selWard = document.getElementById('selWard');
     selDist.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
     selWard.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-    selDist.disabled = true; selWard.disabled = true;
+    selDist.disabled = true;
+    selWard.disabled = true;
     if (!pCode) return;
-    fetch(`https://provinces.open-api.vn/api/p/${pCode}?depth=2`).then(res => res.json()).then(data => {
-        data.districts.forEach(d => {
-            const opt = document.createElement('option'); opt.value = d.code; opt.text = d.name;
-            opt.dataset.json = JSON.stringify({ code: d.code, name: d.name }); selDist.add(opt);
-        }); selDist.disabled = false;
-    });
-}
+    fetch(`https://provinces.open-api.vn/api/p/${pCode}?depth=2`)
+        .then(res => res.json())
+        .then(data => {
+            data.districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.text = d.name;
+                opt.dataset.json = JSON.stringify({ code: d.code, name: d.name });
+                selDist.add(opt);
+            });
+            selDist.disabled = false;
+        });
+};
 
 window.loadWards = function () {
     const dCode = document.getElementById('selDistrict').value;
@@ -161,16 +228,21 @@ window.loadWards = function () {
     selWard.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
     selWard.disabled = true;
     if (!dCode) return;
-    fetch(`https://provinces.open-api.vn/api/d/${dCode}?depth=2`).then(res => res.json()).then(data => {
-        data.wards.forEach(w => {
-            const opt = document.createElement('option'); opt.value = w.code; opt.text = w.name;
-            opt.dataset.json = JSON.stringify({ code: w.code, name: w.name }); selWard.add(opt);
-        }); selWard.disabled = false;
-    });
-}
+    fetch(`https://provinces.open-api.vn/api/d/${dCode}?depth=2`)
+        .then(res => res.json())
+        .then(data => {
+            data.wards.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.code;
+                opt.text = w.name;
+                opt.dataset.json = JSON.stringify({ code: w.code, name: w.name });
+                selWard.add(opt);
+            });
+            selWard.disabled = false;
+        });
+};
 
 window.submitFullForm = function () {
-    // Lấy dữ liệu từ form
     const name = document.getElementById('inpName').value.trim();
     const dob = document.getElementById('inpDob').value.trim();
     const phone = document.getElementById('inpPhone').value.trim();
@@ -182,55 +254,39 @@ window.submitFullForm = function () {
     const reason = document.getElementById('inpReason').value.trim();
 
     if (!name || !dob || !phone || !selProvince.value || !selDistrict.value || !selWard.value || !timeStr || !reason) {
-        alert("Vui lòng điền đầy đủ thông tin!");
-        return;
+        return alert("Vui lòng điền đầy đủ thông tin!");
     }
 
-    // Xử lý địa chỉ JSON
     const provinceData = JSON.parse(selProvince.options[selProvince.selectedIndex].dataset.json);
     const districtData = JSON.parse(selDistrict.options[selDistrict.selectedIndex].dataset.json);
     const wardData = JSON.parse(selWard.options[selWard.selectedIndex].dataset.json);
 
-    // Xử lý ngày giờ
-    const dt = new Date(timeStr);
-    const ts = Math.floor(dt.getTime() / 1000);
-    const hours = dt.getHours();
-
-    if (hours < 7 || hours > 17) {
-        alert("Giờ khám phải từ 07:00 đến 17:00");
-        return;
-    }
-
-    // Tạo gói dữ liệu JSON
     const formData = {
         is_full_form: true,
         data: {
             ho_ten: name,
-            ngay_sinh: dob + "0101", // Mặc định ngày tháng 01/01
+            ngay_sinh: dob + "0101",
             so_dien_thoai: phone,
-            email: "auto@example.com",
             dia_chi_json: { tinh: provinceData, huyen: districtData, xa: wardData },
             dia_chi_ct: street,
-            ngay_hen_ts: ts,
-            gio_hen: hours,
+            ngay_hen_ts: Math.floor(new Date(timeStr).getTime() / 1000),
+            gio_hen: new Date(timeStr).getHours(),
             ghi_chu: reason
         }
     };
 
-    // Gửi dữ liệu đi
     handleSend(JSON.stringify(formData));
-
-    // Xóa form
-    document.getElementById('fullBookingFormUi').remove();
-
-    // Hiện tin nhắn của mình
+    const ui = document.getElementById('fullBookingFormUi');
+    if (ui) ui.remove();
     addMessage("Tôi", "✅ Đã gửi phiếu đăng ký", "me");
-}
+};
 
+// ----------- TINODE CORE -----------
 async function initChat() {
+    Log.info("⚙️ Tinode", "Đang khởi tạo...");
     let TinodeConstructor = window.tinode || window.Tinode;
-    if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
-    if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
+    if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode)
+        TinodeConstructor = TinodeConstructor.Tinode;
 
     chatClient = new TinodeConstructor({
         appName: 'Yte360-Web',
@@ -239,173 +295,192 @@ async function initChat() {
         secure: true
     });
     chatClient.enableLogging(true);
-    let ctrl = null;
 
     try {
         await chatClient.connect();
         isConnected = true;
+        Log.ok("⚙️ Tinode", "Socket kết nối thành công");
 
         let u, p, isGuest = false;
         if (currentUser) {
-            u = currentUser.username; p = currentUser.password;
+            u = currentUser.username;
+            p = currentUser.password || "SecurePass_12345!";
         } else {
             let guest = localStorage.getItem('guest_ss');
             if (!guest) {
                 const rnd = 'guest_' + Math.random().toString(36).substr(2, 6);
-                guest = JSON.stringify({ u: rnd, p: rnd });
+                guest = JSON.stringify({ u: rnd, p: "SecurePass_12345!" });
                 localStorage.setItem('guest_ss', guest);
             }
             const g = JSON.parse(guest);
-            u = g.u; p = g.p;
-            isGuest = true;
+            u = g.u; p = g.p; isGuest = true;
         }
 
         try {
-            ctrl = await chatClient.loginBasic(u, p);
+            let ctrl = await chatClient.loginBasic(u, p);
+            if (ctrl && ctrl.params) myCurrentID = ctrl.params.user;
         } catch (e) {
             if (e.code === 401 || e.code === 404) {
-                ctrl = await chatClient.createAccountBasic(u, p, true);
-                if (!isGuest && currentUser) {
-                    const me = chatClient.getMeTopic();
-                    await me.setMeta({ desc: { public: { fn: currentUser.fullname } } });
-                }
+                let ctrl = await chatClient.createAccountBasic(u, p, true);
+                if (ctrl && ctrl.params) myCurrentID = ctrl.params.user;
             } else throw e;
         }
 
-        if (chatClient.isAuthenticated() && isGuest) {
-            const me = chatClient.getMeTopic();
-            me.setMeta({ desc: { public: { fn: "Khách" } } }).catch(() => { });
-        }
-
-        if (ctrl && ctrl.params && ctrl.params.user) myCurrentID = ctrl.params.user;
-        document.getElementById('status').style.background = "#00e676";
-
+        Log.ok("🔑 Auth", `Login OK — ID: ${myCurrentID}`);
         const me = chatClient.getMeTopic();
         await me.subscribe({ get: { what: 'desc sub data' } });
+        if (!isGuest && currentUser) {
+            await me.setMeta({ desc: { public: { fn: currentUser.fullname } } });
+        }
+
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.style.background = "#00e676";
 
         myTopic = chatClient.getTopic(BOT_ID);
         if (!myTopic) myTopic = chatClient.newTopicP2P(BOT_ID);
 
-        document.getElementById('messages').innerHTML = "";
         await myTopic.subscribe({ get: { what: 'desc sub data', data: { limit: 50 } } });
 
-        document.getElementById('msgInput').disabled = false;
-        document.getElementById('sendBtn').disabled = false;
-
-        setTimeout(() => {
-            const msgBox = document.getElementById('messages');
-            if (msgBox.children.length === 0) {
-                sendGreeting();
-            }
-        }, 1000);
+        document.getElementById('msgInput')?.removeAttribute('disabled');
+        document.getElementById('sendBtn')?.removeAttribute('disabled');
 
         myTopic.onData = (msg) => {
             if (!msg || !msg.content) return;
-            if (typeof msg.content === 'string' && msg.content.startsWith("/start_greet")) return;
+            if (chatClient.isMe(msg.from)) return;
 
             if (msg.from === BOT_ID) {
                 showTyping(false);
                 try {
                     const jsonData = JSON.parse(msg.content);
-
                     if (jsonData.clear_id) {
                         const el = document.getElementById(jsonData.clear_id);
                         if (el) el.remove();
                     }
-
-                    const inputType = jsonData.input_type || 'text';
-
-                    // HIỆN FORM ĐẦY ĐỦ NẾU ĐƯỢC YÊU CẦU
-                    if (inputType === 'full_booking_form') {
+                    if (jsonData.input_type === 'full_booking_form') {
                         addMessage("Bot", jsonData.text, "bot", jsonData.temp_id);
                         showFullBookingForm();
-                        return;
-                    }
-
-                    // 2. HIỂN THỊ TIN NHẮN
-                    if (jsonData.is_rich_text) {
+                    } else if (jsonData.is_rich_text) {
                         addMessageWithButtons("Bot", jsonData.text, jsonData.buttons, jsonData.temp_id);
                     } else {
-                        addMessage("Bot", msg.content, "bot", jsonData.temp_id);
+                        addMessage("Bot", jsonData.text || msg.content, "bot", jsonData.temp_id);
                     }
                 } catch (e) {
                     addMessage("Bot", msg.content, "bot");
                 }
-            } else if (msg.from === myCurrentID || (currentUser && msg.from === currentUser.username)) {
-                if (typeof msg.content === 'string' && msg.content.trim().startsWith('{"is_full_form":')) {
-                    // Không hiển thị JSON raw
-                } else {
-                    addMessage("Tôi", msg.content, "me");
-                }
             }
         };
 
+        // ✅ Guard: chỉ sendGreeting khi myCurrentID đã có
+        setTimeout(() => {
+            const box = document.getElementById('messages');
+            if (box && box.children.length === 0) {
+                if (myCurrentID) sendGreeting();
+                else Log.warn("⚠️ Greet", "myCurrentID null — bỏ qua");
+            }
+        }, 1000);
+
     } catch (err) {
-        console.error("Lỗi kết nối:", err);
-        document.getElementById('status').style.background = "red";
+        Log.error("❌ Tinode", err);
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.style.background = "red";
         isConnected = false;
+        chatInitialized = false;  // Cho phép thử lại
     }
 }
 
 function sendGreeting() {
     if (!myTopic) return;
-    let customerName = currentUser ? currentUser.fullname : "bạn";
-    myTopic.publish("/start_greet " + customerName);
+
+    // ✅ Guard: không tạo key "has_greeted_null"
+    if (!myCurrentID) {
+        Log.warn("⚠️ Greet", "myCurrentID null — bỏ qua");
+        return;
+    }
+
+    const sessionKey = 'has_greeted_' + myCurrentID;
+    if (sessionStorage.getItem(sessionKey)) {
+        Log.info("🛑 Greet", "Đã gửi rồi — bỏ qua");
+        return;
+    }
+
+    const customerName = currentUser ? currentUser.fullname : "bạn";
+    const widgetKey = getWidgetKey();
+
+    // ✅ Truyền username lên bot để bind ownership
+    // Format: /start_greet|widget_key|display_name|username
+    const username = currentUser ? currentUser.username : "";
+    const cmd = `/start_greet|${widgetKey}|${customerName}|${username}`;
+
+    Log.info("🚀 Greet", cmd);
+    myTopic.publish(cmd);
     showTyping(true);
+    sessionStorage.setItem(sessionKey, 'true');
 }
 
 function showTyping(show) {
     const indicator = document.getElementById('typingIndicator');
+    if (indicator) indicator.style.display = show ? 'flex' : 'none';
     const box = document.getElementById('messages');
-    if (show) {
-        indicator.style.display = 'flex';
-        box.scrollTop = box.scrollHeight;
-    } else {
-        indicator.style.display = 'none';
-    }
+    if (box) box.scrollTop = box.scrollHeight;
 }
 
 async function handleSend(customText = null) {
     const input = document.getElementById('msgInput');
-    const txt = customText || input.value.trim();
-
+    const txt = customText || (input ? input.value.trim() : "");
     if (!txt || !myTopic) return;
 
-    cleanupOldInteractions();
+    // ✅ Chỉ xóa .msg-actions của tin nhắn bot CUỐI CÙNG
+    cleanupLastInteraction();
 
-    if (!customText) input.value = '';
+    if (!customText && input) input.value = '';
+    const menu = document.getElementById('quickMenu');
+    if (menu) menu.classList.remove('show');
 
-    document.getElementById('quickMenu').classList.remove('show');
+    addMessage("Tôi", txt, "me");
     showTyping(true);
 
     try {
-        const sender = currentUser ? currentUser.username : JSON.parse(localStorage.getItem('guest_ss')).u;
-        fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender: sender, content: txt, step: 'pre-send' }) });
-        await myTopic.publish(txt);
-    } catch (e) { console.error(e); }
+        // ✅ Gửi kèm username để bot binding ownership
+        const payload = JSON.stringify({
+            action: "chat",
+            widget_key: getWidgetKey(),
+            username: currentUser ? currentUser.username : null,  // ← MỚI
+            text: txt
+        });
+
+        const ctrl = await myTopic.publish(payload);
+        Log.ok("📤 Publish", "Server confirmed", ctrl);
+    } catch (e) {
+        Log.error("❌ Publish", e);
+        showTyping(false);
+    }
 }
 
-function cleanupOldInteractions() {
-    const actions = document.querySelectorAll('.msg-actions');
-    actions.forEach(el => el.remove());
+// ✅ Chỉ xóa .msg-actions CUỐI, giữ nguyên các button cũ hơn
+function cleanupLastInteraction() {
+    const allActions = document.querySelectorAll('.msg-actions');
+    if (allActions.length > 0) {
+        allActions[allActions.length - 1].remove();
+    }
 }
 
 function addMessage(sender, text, type, elemId = null) {
-    if (!text || typeof text !== 'string') return;
-    if (text.startsWith("/start_greet")) return;
+    if (!text || typeof text !== 'string' || text.startsWith("/start_greet")) return;
+    if (text.startsWith('{"is_full_form":')) return;
 
     const box = document.getElementById('messages');
+    if (!box) return;
+
     if (type === 'bot') {
         const container = document.createElement('div');
         container.className = 'bot-container';
         if (elemId) container.id = elemId;
-
         container.innerHTML = `
-                    <div class="bot-row">
-                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
-                        <div class="message bot">${text}</div>
-                    </div>
-                `;
+            <div class="bot-row">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+                <div class="message bot">${text}</div>
+            </div>
+        `;
         box.appendChild(container);
     } else {
         const div = document.createElement('div');
@@ -418,17 +493,19 @@ function addMessage(sender, text, type, elemId = null) {
 
 function addMessageWithButtons(sender, text, buttons, elemId = null) {
     const box = document.getElementById('messages');
+    if (!box) return;
+
     const container = document.createElement('div');
     container.className = 'bot-container';
     if (elemId) container.id = elemId;
 
     let html = `
-                <div class="bot-row">
-                    <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
-                    <div class="message bot">${text}</div>
-                </div>
-                <div class="msg-actions">
-            `;
+        <div class="bot-row">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="bot-avatar">
+            <div class="message bot">${text}</div>
+        </div>
+        <div class="msg-actions">
+    `;
     if (buttons) {
         buttons.forEach(btn => {
             const val = btn.value;
@@ -446,14 +523,14 @@ function addMessageWithButtons(sender, text, buttons, elemId = null) {
     box.scrollTop = box.scrollHeight;
 }
 
-document.getElementById('msgInput').addEventListener("keypress", (e) => {
-    if (e.key === "Enter") handleSend();
-});
+const msgInput = document.getElementById('msgInput');
+if (msgInput) {
+    msgInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSend();
+    });
+}
 
-initUI();
-initChat();
-//  --------------------------
-//  --------- LOGIN --------- 
+// ----------- LOGIN API -----------
 async function handleLogin() {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value.trim();
@@ -466,45 +543,28 @@ async function handleLogin() {
             body: JSON.stringify({ username: user, password: pass })
         });
         const data = await res.json();
-
         if (data.status === 'success') {
-            const userInfo = {
+            localStorage.setItem('yte360_user', JSON.stringify({
                 username: data.user.username,
                 password: pass,
                 fullname: data.user.fullname
-            };
-            localStorage.setItem('yte360_user', JSON.stringify(userInfo));
+            }));
             window.location.href = "/";
-        } else {
-            alert(data.message);
-        }
+        } else alert(data.message);
     } catch (err) {
-        alert("Lỗi hệ thống: " + err.message);
+        Log.error("❌ Login", err);
     }
 }
 
-
-// --------- REGISTER ---------
 async function processRegister() {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value.trim();
     const fname = document.getElementById('fullname').value.trim();
-
     const status = document.getElementById('statusMsg');
-    const btn = document.getElementById('regBtn');
 
-    if (!user || !pass || !fname) {
-        status.innerText = "Vui lòng điền đủ thông tin.";
-        status.className = "error";
-        return;
-    }
-
-    btn.disabled = true;
-    status.innerText = "Đang tạo tài khoản...";
-    status.className = "loading";
+    if (!user || !pass || !fname) return alert("Vui lòng điền đầy đủ thông tin!");
 
     try {
-        // 1. Đăng ký vào Database Yte360 (Flask)
         const res = await fetch('/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -513,51 +573,38 @@ async function processRegister() {
         const data = await res.json();
         if (data.status !== 'success') throw new Error(data.message);
 
-        // 2. Đăng ký lên Tinode Local
-        status.innerText = "Đang đồng bộ với Tinode Local...";
-        await registerTinode(user, pass, fname);
+        let TinodeConstructor = window.tinode || window.Tinode;
+        if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode)
+            TinodeConstructor = TinodeConstructor.Tinode;
 
-        status.innerText = "Thành công! Đang chuyển trang...";
-        status.className = "success";
+        const regClient = new TinodeConstructor({
+            appName: 'Reg', host: TINODE_HOST, apiKey: API_KEY, secure: true
+        });
+        await regClient.connect();
+        await regClient.createAccountBasic(user, pass, true);
+        const me = regClient.getMeTopic();
+        await me.setMeta({ desc: { public: { fn: fname } } });
+        regClient.disconnect();
 
-        setTimeout(() => window.location.href = "/login", 1500);
+        alert("Đăng ký thành công!");
+        window.location.href = "/login";
 
     } catch (err) {
-        console.error(err);
-        status.innerText = "Lỗi: " + err.message;
-        status.className = "error";
-        btn.disabled = false;
+        Log.error("❌ Register", err);
+        if (status) {
+            status.innerText = "Lỗi: " + (err.message || "Không xác định");
+            status.style.color = "red";
+        } else {
+            alert("Lỗi: " + (err.message || "Không xác định"));
+        }
     }
 }
 
-async function registerTinode(u, p, fn) {
-    let TinodeConstructor = window.tinode || window.Tinode;
-    if (typeof TinodeConstructor === 'object' && TinodeConstructor.default) TinodeConstructor = TinodeConstructor.default;
-    if (typeof TinodeConstructor === 'object' && TinodeConstructor.Tinode) TinodeConstructor = TinodeConstructor.Tinode;
+// ----------- INIT -----------
+initUI();
 
-    // // KẾT NỐI LOCAL - secure: false (vì localhost thường không có SSL)
-    // const client = new TinodeConstructor({
-    //     appName: 'Yte360-Reg',
-    //     host: TINODE_HOST,
-    //     apiKey: API_KEY,
-    //     secure: false
-    // });
-
-    try {
-        await client.connect();
-        await client.createAccountBasic(u, p, true);
-
-        const me = client.getMeTopic();
-        await me.setMeta({ desc: { public: { fn: fn } } });
-    } catch (err) {
-        if (err.code === 409) {
-            await client.loginBasic(u, p);
-            const me = client.getMeTopic();
-            await me.setMeta({ desc: { public: { fn: fn } } });
-        } else {
-            throw err;
-        }
-    } finally {
-        client.disconnect();
-    }
+// ✅ Lazy init — initChat() chỉ chạy khi user bấm mở chat lần đầu (trong toggleChat)
+const currentPath = window.location.pathname.toLowerCase();
+if (!currentPath.includes('register') && !currentPath.includes('login')) {
+    Log.ok("✅ App", "Trang load xong — Tinode sẽ kết nối khi mở chat");
 }
