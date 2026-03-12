@@ -61,7 +61,7 @@ yte360livechat/
 
 ```bash
 # Clone dự án
-git clone [https://git.gonstack.com/healthchain/yte360livechat.git](https://github.com/hopmini/chatapp)
+git clone https://github.com/hopmini/chatapp
 cd yte360livechat
 
 # Tạo môi trường ảo
